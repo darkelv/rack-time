@@ -7,29 +7,32 @@ class App
 
     if valid_path?
       timestamp = TimeStamp.new(request.params["format"])
-
-      if timestamp.has_invalid?
-        rack_respone(:bad_request, "Формат веремни не отпределен [#{timestamp.invalid}]")
-      else
-        rack_respone(:ok, timestamp.format)
-      end
+      response(timestamp)
     else
-      rack_respone(:not_found, "Страница не найдена")
+      rack_response(404, "Страница не найдена")
     end
   end
 
   private
 
-  def rack_respone response_msg, body
+  def response timestamp
+    if timestamp.has_invalid?
+      rack_response(400, "Формат веремни не отпределен [#{timestamp.invalid}]")
+    else
+      rack_response(200, timestamp.format)
+    end
+  end
+
+  def rack_response status, body
     [
-      Rack::Utils.status_code(response_msg),
+      status,
       {"Content-Type" => "text/html"},
       [body]
     ]
   end
 
   def request
-    @request = Rack::Request.new(@env)
+    @request ||= Rack::Request.new(@env)
   end
 
   def valid_path?
